@@ -16,29 +16,6 @@ class AShape {
 
     AShape(float rectWidth, float rectHeight) 
         : rectangleShape(sf::Vector2f(rectWidth, rectHeight)){}
-
-     void setCirclePosition(const sf::Vector2f& pos) {
-        circleShape.setPosition(pos);
-    }
-
-    void setRectanglePosition(const sf::Vector2f& pos) {
-        rectangleShape.setPosition(pos);
-    }
-
-    bool isCircleBounding(int wWidth, int wHeight){
-        if(circleShape.getGlobalBounds().left < 0 || circleShape.getGlobalBounds().left 
-        + circleShape.getGlobalBounds().width > wWidth){
-            return true;
-        }
-        if (circleShape.getGlobalBounds().top < 0 || circleShape.getGlobalBounds().top + (circleShape.getRadius()*2) > wHeight){
-            return true;
-        }
-      
-
-    }
-    
-
-
 };
 
 
@@ -63,7 +40,7 @@ class GameConfig{
     public:
     Window window;
     RGB rgb;
-    int fontSize; 
+    uint16_t fontSize; 
     std::string fontPath;
     sf::Font myFont;
     sf::Text text;
@@ -104,14 +81,8 @@ class GameConfig{
                 mycircleptr->circleShape.setPosition(shapePositionX, shapePositionY);
                 mycircleptr->circleShape.setFillColor(sf::Color(rgb.red, rgb.green, rgb.blue));
                 mycircleptr->speed = sf::Vector2f(shapeSpeedX, shapeSpeedY); // Fixed here
-                mycircleptr->text.setFont(myFont);
-                mycircleptr->text.setCharacterSize(fontSize);
                 mycircleptr->text.setString(shapeName);
                 
-                mycircleptr->text.setPosition(
-                    mycircleptr->circleShape.getPosition().x + mycircleptr->circleShape.getRadius() - (mycircleptr->text.getLocalBounds().width/2),
-                    mycircleptr->circleShape.getPosition().y + mycircleptr->circleShape.getRadius() - (mycircleptr->text.getLocalBounds().height/2)
-                );
                 myShapes.shapes.push_back(mycircleptr);
              }
              if(property == "Rectangle"){
@@ -119,24 +90,10 @@ class GameConfig{
                 fin >> shapeName >>shapePositionX >> shapePositionY >> shapeSpeedX >> shapeSpeedY 
                 >> rgb.red >> rgb.green >> rgb.blue >> shapeWidth >> shapeHeight;
                 AShape* myRectangleptr = new AShape(shapeWidth, shapeHeight);
-               
                 myRectangleptr->rectangleShape.setPosition(shapePositionX, shapePositionY);
                 myRectangleptr->rectangleShape.setFillColor(sf::Color(rgb.red, rgb.green, rgb.blue));
                 myRectangleptr->speed = sf::Vector2f(shapeSpeedX, shapeSpeedY); 
-                myRectangleptr->text.setFont(myFont);
                 myRectangleptr->text.setString(shapeName);
-
-
-                myRectangleptr->text.setPosition(myRectangleptr->rectangleShape.getPosition().x +
-                (myRectangleptr->rectangleShape.getLocalBounds().width/2) - (myRectangleptr->text.getLocalBounds().width/2),
-                myRectangleptr->rectangleShape.getPosition().y +
-                (myRectangleptr->rectangleShape.getLocalBounds().height/2) - 
-                (myRectangleptr->text.getLocalBounds().height/2));
-                std::cout << myRectangleptr->text.getLocalBounds().height << "\n";
-                std::cout << myRectangleptr->rectangleShape.getLocalBounds().height << "\n";
-
-
-
                 myShapes.shapes.push_back(myRectangleptr);
              }
              
@@ -148,23 +105,16 @@ class GameConfig{
 
 
 
-int main()
+int main(int argc, char* argv[])
 {
     GameConfig gameConfig;
-    gameConfig.readFromFile("config.txt");
+    gameConfig.readFromFile("bin/config.txt");
    
     const int wWidth = gameConfig.window.wWidth;
     const int wHeight = gameConfig.window.wHeight;
     
     sf::RenderWindow window(sf::VideoMode(wWidth, wHeight), "SFML Works!");
-    window.setFramerateLimit(120);
-
-    sf::Font myFont;
-    
-    if (!myFont.loadFromFile("fonts/KillerTech.ttf")){
-        std::cerr << "Could not load font\n";
-        exit(-1);
-    }
+    window.setFramerateLimit(60);
 
    
     while(window.isOpen()){
@@ -179,26 +129,53 @@ int main()
             
         }
 
-        // for(auto& shape: gameConfig.myShapes.shapes){
+        for(auto& shape: gameConfig.myShapes.shapes){
             
-        //     shape->circleShape.setPosition(shape->circleShape.getPosition().x-shape->speed.x,
-        //     shape->circleShape.getPosition().y - shape->speed.y );
-        //     if(shape->circleShape.getRadius()>0){
-        //         shape->text.setPosition(shape->circleShape.getPosition());  
-            
-        //     }
+            shape->circleShape.setPosition(shape->circleShape.getPosition().x-shape->speed.x,
+            shape->circleShape.getPosition().y - shape->speed.y );
 
-        //     shape->rectangleShape.setPosition(shape->rectangleShape.getPosition().x-shape->speed.x,
-        //     shape->rectangleShape.getPosition().y- shape->speed.y);
-        //     if(shape->rectangleShape.getLocalBounds().height > 0){
-        //         shape->text.setPosition(shape->rectangleShape.getPosition());
-        //     }
-            
-            
-        // }
+            if(shape->circleShape.getRadius()>0){
+                shape->text.setPosition(
+                    shape->circleShape.getPosition().x + shape->circleShape.getLocalBounds().width/2 - shape->text.getLocalBounds().width/2,
+                    shape->circleShape.getPosition().y + shape->circleShape.getLocalBounds().height/2 - shape->text.getLocalBounds().height/2
+                );  
+                float shapeX = shape->circleShape.getPosition().x;
+                float shapeWidth = shape->circleShape.getLocalBounds().width;
+                if(shapeX < 0 || shapeX + shapeWidth > gameConfig.window.wWidth){
+                    shape->speed.x *= -1.0f;
+                }
+                float shapeY  = shape->circleShape.getPosition().y;
+                float shapeHeight = shape->circleShape.getLocalBounds().height;
+                if (shapeY < 0 || shapeY + shapeHeight > gameConfig.window.wHeight){
+                    shape->speed.y *=-1.0f;
+                }
+            }
+
+            shape->rectangleShape.setPosition(shape->rectangleShape.getPosition().x-shape->speed.x,
+            shape->rectangleShape.getPosition().y- shape->speed.y);
+            if(shape->rectangleShape.getLocalBounds().height > 0){
+                shape->text.setPosition(
+                    shape->rectangleShape.getPosition().x + shape->rectangleShape.getLocalBounds().width/2 - shape->text.getLocalBounds().width/2,
+                    shape->rectangleShape.getPosition().y + shape->rectangleShape.getLocalBounds().height/2 - shape->text.getLocalBounds().height/2
+                );
+                float shapeX = shape->rectangleShape.getPosition().x;
+                float shapeWidth = shape->rectangleShape.getLocalBounds().width;
+                if(shapeX < 0 || shapeX + shapeWidth > gameConfig.window.wWidth){
+                    shape->speed.x *= -1.0f;
+                }
+                float shapeY  = shape->rectangleShape.getPosition().y;
+                float shapeHeight = shape->rectangleShape.getLocalBounds().height;
+                if (shapeY < 0 || shapeY + shapeHeight > gameConfig.window.wHeight){
+                    shape->speed.y *=-1.0f;
+                }
+                
+            }
+ 
+        }
         window.clear();
 
         for(auto& shape: gameConfig.myShapes.shapes){
+
             window.draw(shape->circleShape);
             window.draw(shape->rectangleShape);
         }
