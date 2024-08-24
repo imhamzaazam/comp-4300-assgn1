@@ -16,12 +16,22 @@ class AShape {
 
     AShape(float rectWidth, float rectHeight) 
         : rectangleShape(sf::Vector2f(rectWidth, rectHeight)){}
+
+     void setCirclePosition(const sf::Vector2f& pos) {
+        circleShape.setPosition(pos);
+    }
+
+    void setRectanglePosition(const sf::Vector2f& pos) {
+        rectangleShape.setPosition(pos);
+    }
+
+
 };
 
 
 class MyShapes {
     public: 
-        std::vector<AShape *> shapes;
+        std::vector<std::shared_ptr<AShape>> shapes;
 };
 
 class Window{
@@ -77,10 +87,11 @@ class GameConfig{
              if(property == "Circle"){
                 fin >> shapeName >> shapePositionX >> shapePositionY >> shapeSpeedX >> shapeSpeedY 
                 >> rgb.red >> rgb.green >>rgb.blue >> radius;
-                AShape* mycircleptr = new AShape(radius);
+                auto mycircleptr = std::make_shared<AShape>(radius);
                 mycircleptr->circleShape.setPosition(shapePositionX, shapePositionY);
                 mycircleptr->circleShape.setFillColor(sf::Color(rgb.red, rgb.green, rgb.blue));
                 mycircleptr->speed = sf::Vector2f(shapeSpeedX, shapeSpeedY); // Fixed here
+                mycircleptr->text.setFont(myFont);
                 mycircleptr->text.setString(shapeName);
                 
                 myShapes.shapes.push_back(mycircleptr);
@@ -89,10 +100,11 @@ class GameConfig{
 
                 fin >> shapeName >>shapePositionX >> shapePositionY >> shapeSpeedX >> shapeSpeedY 
                 >> rgb.red >> rgb.green >> rgb.blue >> shapeWidth >> shapeHeight;
-                AShape* myRectangleptr = new AShape(shapeWidth, shapeHeight);
+                auto myRectangleptr = std::make_shared<AShape>(shapeWidth, shapeHeight);
                 myRectangleptr->rectangleShape.setPosition(shapePositionX, shapePositionY);
                 myRectangleptr->rectangleShape.setFillColor(sf::Color(rgb.red, rgb.green, rgb.blue));
                 myRectangleptr->speed = sf::Vector2f(shapeSpeedX, shapeSpeedY); 
+                myRectangleptr->text.setFont(myFont);
                 myRectangleptr->text.setString(shapeName);
                 myShapes.shapes.push_back(myRectangleptr);
              }
@@ -105,7 +117,7 @@ class GameConfig{
 
 
 
-int main(int argc, char* argv[])
+int main()
 {
     GameConfig gameConfig;
     gameConfig.readFromFile("bin/config.txt");
@@ -170,7 +182,10 @@ int main(int argc, char* argv[])
                 }
                 
             }
- 
+
+            
+            
+            
         }
         window.clear();
 
